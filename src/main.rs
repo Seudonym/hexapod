@@ -18,7 +18,7 @@ fn main() {
 
     let mut pca = pca9685::PCA9685::new(i2c, pca9685::Address::default()).unwrap();
 
-    let _ = pca.reset(&mut delay).unwrap();
+    pca.reset(&mut delay).unwrap();
 
     const SERVO_MIN: u16 = 135;
     const SERVO_MAX: u16 = 530;
@@ -27,7 +27,7 @@ fn main() {
 
     let mut pulse = SERVO_MIN;
     loop {
-        pulse = pulse + 1;
+        pulse += 1;
         if pulse == SERVO_MAX {
             delay.delay_ms(10);
             pulse = SERVO_MIN;

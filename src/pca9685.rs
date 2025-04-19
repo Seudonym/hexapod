@@ -1,4 +1,3 @@
-use bitflags::bitflags;
 use embedded_hal::{delay::DelayNs, i2c::I2c};
 
 pub const DEFAULT_ADDRESS: u8 = 0x40;
@@ -101,9 +100,10 @@ impl Address {
         }
         Address(addr)
     }
+}
 
-    /// Returns the default address (0x40)
-    pub fn default() -> Self {
+impl Default for Address {
+    fn default() -> Self {
         Address(DEFAULT_ADDRESS)
     }
 }
@@ -172,7 +172,7 @@ where
         self.wake()
     }
 
-    ///
+    /// Set the PWM for a channel
     pub fn set_pwm(&mut self, channel: Channel, on: u16, off: u16) -> Result<(), E> {
         let channel = match channel {
             Channel::C0 => Register::LED0_ON_L,
@@ -200,14 +200,14 @@ where
 
     /// Write a byte to a register
     pub fn write_register(&mut self, reg: u8, value: u8) -> Result<(), E> {
-        let mut buf = [reg as u8, value];
+        let buf = [reg, value];
         self.i2c.write(self.address, &buf)
     }
 
     /// Read a byte from a register
     pub fn read_register(&mut self, reg: u8) -> Result<u8, E> {
         let mut buf = [0; 1];
-        self.i2c.write_read(self.address, &[reg as u8], &mut buf)?;
+        self.i2c.write_read(self.address, &[reg], &mut buf)?;
         Ok(buf[0])
     }
 }
