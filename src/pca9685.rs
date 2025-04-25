@@ -1,4 +1,4 @@
-use embedded_hal::{delay::DelayNs, i2c::I2c};
+use embedded_hal::i2c::I2c;
 
 pub const DEFAULT_ADDRESS: u8 = 0x40;
 pub const DEFAULT_FREQUENCY: u32 = 25_000_000;
@@ -133,13 +133,9 @@ where
     }
 
     /// Reset the PCA9685
-    pub fn reset<D>(&mut self, delay: &mut D) -> Result<(), E>
-    where
-        D: DelayNs,
-    {
+    pub fn reset(&mut self) -> Result<(), E> {
         // Reset the PCA9685 by writing 0x00 to the mode1 register
         self.write_register(Register::MODE1, Mode1::RESTART)?;
-        delay.delay_ms(5);
         Ok(())
     }
 

@@ -1,6 +1,7 @@
 use esp_idf_svc::hal;
 use esp_idf_svc::hal::prelude::Peripherals;
-use hexapod::pca9685;
+use hexapod::hexapod::Hexapod;
+pub(crate) use hexapod::pca9685::Address;
 
 fn main() {
     esp_idf_svc::sys::link_patches();
@@ -11,33 +12,20 @@ fn main() {
     let sda = peripherals.pins.gpio21;
     let scl = peripherals.pins.gpio22;
 
-    let mut delay = hal::delay::Delay::new_default();
+    let delay = hal::delay::Delay::new_default();
     let i2c =
         hal::i2c::I2cDriver::new(peripherals.i2c0, sda, scl, &hal::i2c::config::Config::new())
             .unwrap();
 
-    let mut pca = pca9685::PCA9685::new(i2c, pca9685::Address::default()).unwrap();
-
-    pca.reset(&mut delay).unwrap();
-
-    const SERVO_MIN: u16 = 135;
-    const SERVO_MAX: u16 = 530;
-
-    pca.set_pwm_frequency(50.0).unwrap();
-
-    let mut pulse = SERVO_MIN;
+    let mut hexapod = Hexapod::new(i2c, Address::default()).unwrap();
+    let mut angle = 0.0;
     loop {
-        pulse += 1;
-        if pulse == SERVO_MAX {
-            delay.delay_ms(10);
-            pulse = SERVO_MIN;
-            pca.set_pwm(pca9685::Channel::C0, 0, pulse).unwrap();
-            pca.set_pwm(pca9685::Channel::C1, 0, pulse).unwrap();
-            delay.delay_ms(10);
+        hexapod.update_leg_angles(0, angle, angle, angle).unwrap();
+        delay.delay_ms(2000);
+        angle += 10.0;
+
+        if angle > 180.0 {
+            angle = 0.0;
         }
-        pca.set_pwm(pca9685::Channel::C0, 0, pulse).unwrap();
-        pca.set_pwm(pca9685::Channel::C1, 0, pulse).unwrap();
-        delay.delay_ms(10);
-        log::info!("Pulse: {}", pulse);
     }
 }
